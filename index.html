@@ -82,10 +82,30 @@ button.send{background:#25d366;color:#fff;border:0;border-radius:10px;padding:14
   select{min-width:145px;font-size:12px}
   .sticky-total span{font-size:18px}
 }
+
+/* CONTROLE 4K */
+.control-tab{position:fixed;top:14px;right:14px;z-index:50;background:#111;color:#fff;border:1px solid #333;border-radius:12px;padding:9px 12px;font-weight:800;box-shadow:0 3px 12px #0003}
+.control-overlay{position:fixed;inset:0;background:#0009;z-index:100;display:none;overflow:auto;padding:18px}
+.control-panel{max-width:980px;margin:30px auto;background:#fff;border-radius:18px;padding:18px;color:#161616;box-shadow:0 15px 50px #0008}
+.control-head{display:flex;justify-content:space-between;align-items:center;gap:12px;border-bottom:1px solid #eee;padding-bottom:12px}
+.control-head h2{margin:0}.control-close{border:0;background:#eee;border-radius:9px;padding:9px 12px;font-weight:800}
+.control-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+.control-card{border:1px solid #e5e5e5;border-radius:14px;padding:14px}
+.control-card h3{margin-bottom:10px}.control-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.control-card input,.control-card select{width:100%;min-width:0;padding:10px;border:1px solid #ccc;border-radius:9px}
+.control-card button{border:0;border-radius:9px;padding:10px 13px;font-weight:800;cursor:pointer}
+.btn-red{background:#e21b23;color:#fff}.btn-dark{background:#111;color:#fff}.btn-green{background:#159447;color:#fff}
+.ai-status{padding:10px;border-radius:10px;background:#f4f4f4;margin:8px 0;font-size:13px}
+.mic-on{background:#ffe9e9;border:1px solid #e21b23}.ai-log{max-height:180px;overflow:auto;background:#111;color:#fff;border-radius:10px;padding:10px;font:12px/1.5 monospace}
+.product-admin-list{max-height:360px;overflow:auto}.admin-product{display:grid;grid-template-columns:1.7fr .8fr .8fr auto;gap:7px;align-items:center;border-bottom:1px solid #eee;padding:7px 0}
+.confirm-overlay{position:fixed;inset:0;background:#000b;z-index:200;display:none;align-items:center;justify-content:center;padding:18px}
+.confirm-box{max-width:430px;width:100%;background:#fff;border-radius:16px;padding:18px}
+.confirm-box p{line-height:1.5}.confirm-actions{display:flex;gap:8px;justify-content:flex-end}
+@media(max-width:700px){.control-tab{top:8px;right:8px}.control-grid{grid-template-columns:1fr}.control-panel{margin:8px auto;padding:12px}.admin-product{grid-template-columns:1fr 90px auto}}
 </style>
 </head>
 <body>
-<header class="brand-header">
+<button class="control-tab" onclick="openControl()">⚙ Controle</button>\n<header class="brand-header">
   <div class="brand-stripe"></div>
   <div class="brand-copy">
     <div class="brand-name">4K MEAT</div>
@@ -136,7 +156,53 @@ button.send{background:#25d366;color:#fff;border:0;border-radius:10px;padding:14
   </div>
 </main>
 
-<div class="sticky-order">
+
+<div class="control-overlay" id="controlOverlay">
+  <div class="control-panel">
+    <div class="control-head"><h2>Controle 4K</h2><button class="control-close" onclick="closeControl()">Fechar</button></div>
+    <div class="control-grid">
+      <div class="control-card">
+        <h3>🤖 Assistente 4K</h3>
+        <div class="ai-status" id="aiStatus">Microfone desligado. Ative para usar o comando por voz.</div>
+        <div class="control-row"><button class="btn-dark" id="micBtn" onclick="toggleMic()">🎙 Ativar microfone</button></div>
+        <input id="aiText" placeholder='Ex.: 4K altere a Tilápia para R$ 35,00'>
+        <div class="control-row"><button class="btn-red" onclick="runAICommand()">Interpretar comando</button></div>
+        <small>A assistente só executa uma alteração depois de mostrar o que entendeu e pedir confirmação.</small>
+        <div class="ai-log" id="aiLog">Pronta. Diga “4K” antes do comando.</div>
+      </div>
+      <div class="control-card">
+        <h3>📷 Identificar produto por foto</h3>
+        <input type="file" id="productPhoto" accept="image/*" onchange="inspectPhoto(event)">
+        <div class="ai-status" id="photoStatus">Envie uma foto para preparar a identificação/cadastro.</div>
+        <input id="photoProductName" placeholder="Nome do produto">
+        <div class="control-row"><input id="photoPrice" placeholder="Preço/kg" inputmode="decimal"><input id="photoPackage" placeholder="Embalagem (ex.: 10 kg)"></div>
+        <select id="photoCategory"><option>Frios e Laticínios</option><option>Aves</option><option>Carnes Bovinas</option><option>Carnes Suínas</option><option>Pescados e Frutos do Mar</option><option>Batatas e Congelados</option><option>Kits</option></select>
+        <button class="btn-green" onclick="preparePhotoProduct()">Preparar cadastro</button>
+        <small>O reconhecimento visual por IA precisa de um serviço de visão conectado ao site; a foto e os campos ficam preparados aqui sem enviar dados para terceiros.</small>
+      </div>
+      <div class="control-card">
+        <h3>➕ Cadastro manual</h3>
+        <input id="newName" placeholder="Nome do produto">
+        <div class="control-row"><input id="newPrice" placeholder="Preço/kg ou kit" inputmode="decimal"><input id="newPackage" placeholder="Embalagem (ex.: 10 kg)"></div>
+        <select id="newCategory"><option>Frios e Laticínios</option><option>Aves</option><option>Carnes Bovinas</option><option>Carnes Suínas</option><option>Pescados e Frutos do Mar</option><option>Batatas e Congelados</option><option>Kits</option></select>
+        <div class="control-row"><button class="btn-green" onclick="prepareAdd()">Cadastrar produto</button></div>
+      </div>
+      <div class="control-card">
+        <h3>✏️ Alterações rápidas</h3>
+        <input id="editSearch" placeholder="Digite o nome do produto" oninput="renderAdminList()">
+        <div class="product-admin-list" id="adminList"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-box">
+    <h3>Confirmar alteração</h3>
+    <p id="confirmText"></p>
+    <div class="confirm-actions"><button class="control-close" onclick="cancelConfirm()">Cancelar</button><button class="btn-red" onclick="acceptConfirm()">Confirmar</button></div>
+  </div>
+</div>
+\n<div class="sticky-order">
   <div class="sticky-inner">
     <div class="sticky-total">Total: <span id="stickyGrand">R$ 0,00</span></div>
     <button class="send" onclick="send()">Finalizar pedido</button>
@@ -423,6 +489,77 @@ function send(){
 
 renderCategories();
 render();
+
+/* ===== CONTROLE 4K ===== */
+let adminProducts=JSON.parse(localStorage.getItem('4k_catalog')||'null')||products.map(p=>[...p]);
+let pendingAction=null, recognition=null, micActive=false, wakeArmed=false;
+function saveCatalog(){localStorage.setItem('4k_catalog',JSON.stringify(adminProducts));}
+function syncProducts(){products.length=0;adminProducts.forEach(p=>products.push(p));renderCategories();render();}
+function openControl(){const pass=prompt('Senha do Controle 4K:');if(pass!=='4k'){if(pass!==null)alert('Senha incorreta.');return;}document.getElementById('controlOverlay').style.display='block';renderAdminList();}
+function closeControl(){document.getElementById('controlOverlay').style.display='none';stopMic();}
+function confirmChange(text,fn){pendingAction=fn;document.getElementById('confirmText').textContent=text;document.getElementById('confirmOverlay').style.display='flex';}
+function cancelConfirm(){pendingAction=null;document.getElementById('confirmOverlay').style.display='none';}
+function acceptConfirm(){const fn=pendingAction;pendingAction=null;document.getElementById('confirmOverlay').style.display='none';if(fn)fn();}
+function norm(s){return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();}
+function numBR(s){return parseFloat(String(s).replace(/[^0-9,.-]/g,'').replace(/\.(?=.*\.)/g,'').replace(',','.'));}
+function findProduct(name){const q=norm(name);return adminProducts.find(p=>norm(p[0])===q)||adminProducts.find(p=>norm(p[0]).includes(q)||q.includes(norm(p[0])));}
+function logAI(s){const el=document.getElementById('aiLog');el.textContent+='\n'+s;el.scrollTop=el.scrollHeight;}
+function renderAdminList(){
+ const q=norm(document.getElementById('editSearch')?.value);
+ const el=document.getElementById('adminList'); if(!el)return;
+ el.innerHTML=adminProducts.filter(p=>!q||norm(p[0]).includes(q)).map((p,i)=>`<div class="admin-product">
+ <input value="${p[0]}" onchange="prepareEditName(${i},this.value)">
+ <input value="${p[1]==null?'':p[1]}" placeholder="Preço" inputmode="decimal" onchange="prepareEditPrice(${i},this.value)">
+ <input value="${p[2]}" onchange="prepareEditPack(${i},this.value)">
+ <button class="btn-red" onclick="prepareRemove(${i})">Excluir</button>
+ </div>`).join('');
+}
+function prepareEditName(i,v){if(!v.trim()||v===adminProducts[i][0])return;confirmChange(`Alterar o nome de “${adminProducts[i][0]}” para “${v}”?`,()=>{adminProducts[i][0]=v.trim();saveCatalog();syncProducts();renderAdminList();});}
+function prepareEditPrice(i,v){const n=numBR(v);if(Number.isNaN(n)||n===adminProducts[i][1])return;confirmChange(`Alterar o preço de “${adminProducts[i][0]}” de ${adminProducts[i][1]==null?'sob consulta':brl(adminProducts[i][1])} para ${brl(n)}?`,()=>{adminProducts[i][1]=n;saveCatalog();syncProducts();renderAdminList();});}
+function prepareEditPack(i,v){if(!v.trim()||v===adminProducts[i][2])return;confirmChange(`Alterar a embalagem de “${adminProducts[i][0]}” para “${v}”?`,()=>{adminProducts[i][2]=v.trim();saveCatalog();syncProducts();renderAdminList();});}
+function prepareRemove(i){confirmChange(`Remover “${adminProducts[i][0]}” do catálogo?`,()=>{adminProducts.splice(i,1);saveCatalog();syncProducts();renderAdminList();});}
+function prepareAdd(){
+ const name=document.getElementById('newName').value.trim(), price=numBR(document.getElementById('newPrice').value), pack=document.getElementById('newPackage').value.trim(), cat=document.getElementById('newCategory').value;
+ if(!name||Number.isNaN(price)||!pack)return alert('Preencha nome, preço e embalagem.');
+ confirmChange(`Cadastrar “${name}” por ${brl(price)} com embalagem “${pack}” em “${cat}”?`,()=>{adminProducts.push([name,price,pack,cat==='Kits'?'kit':'kg']);categoryMap[name]=cat;saveCatalog();syncProducts();renderAdminList();document.getElementById('newName').value='';document.getElementById('newPrice').value='';document.getElementById('newPackage').value='';});
+}
+function inspectPhoto(e){const f=e.target.files?.[0];if(!f)return;document.getElementById('photoStatus').textContent=`Foto carregada: ${f.name}. Para identificação automática por visão, conecte um endpoint de IA seguro.`;document.getElementById('photoStatus').classList.add('ai-status');}
+function preparePhotoProduct(){
+ const name=document.getElementById('photoProductName').value.trim(), price=numBR(document.getElementById('photoPrice').value), pack=document.getElementById('photoPackage').value.trim(), cat=document.getElementById('photoCategory').value;
+ if(!name||Number.isNaN(price)||!pack)return alert('Preencha os dados identificados antes de preparar o cadastro.');
+ confirmChange(`Cadastrar o produto identificado “${name}” por ${brl(price)} com embalagem “${pack}”?`,()=>{adminProducts.push([name,price,pack,cat==='Kits'?'kit':'kg']);categoryMap[name]=cat;saveCatalog();syncProducts();renderAdminList();});
+}
+function parseAICommand(text){
+ let s=norm(text); if(!s.startsWith('4k'))return {ignored:true};
+ s=s.replace(/^4k[\s,:-]*/,'').trim();
+ let m=s.match(/(?:alter(?:e|ar)|mude|mudar|atualize|atualizar)\s+(?:o\s+)?(?:preco|valor)\s+(?:d[aeo]\s+)?(.+?)\s+(?:para|por)\s+r?\$?\s*([\d.,]+)/i);
+ if(m){const p=findProduct(m[1]);const n=numBR(m[2]);if(!p||Number.isNaN(n))return {error:'Não encontrei o produto ou o preço.'};const i=adminProducts.indexOf(p);return {text:`Alterar o preço de “${p[0]}” para ${brl(n)}?`,fn:()=>{p[1]=n;saveCatalog();syncProducts();renderAdminList();}};}
+ m=s.match(/(?:remov(?:a|er)|exclu(?:a|ir)|apagu(?:e|ar))\s+(?:o\s+)?(?:produto\s+)?(.+)/i);
+ if(m){const p=findProduct(m[1]);if(!p)return {error:'Não encontrei esse produto.'};return {text:`Remover “${p[0]}” do catálogo?`,fn:()=>{adminProducts.splice(adminProducts.indexOf(p),1);saveCatalog();syncProducts();renderAdminList();}};}
+ m=s.match(/(?:cadastre|cadastrar|adicione|adicionar)\s+(?:o\s+)?(?:produto\s+)?(.+?)\s+(?:por|a)\s+r?\$?\s*([\d.,]+)(?:\s+(?:com|de)\s+(.+))?$/i);
+ if(m){const name=m[1].trim(),n=numBR(m[2]),pack=(m[3]||'1 kg').trim();return {text:`Cadastrar “${name}” por ${brl(n)} com embalagem “${pack}”?`,fn:()=>{adminProducts.push([name,n,pack,'kg']);categoryMap[name]='Outros';saveCatalog();syncProducts();renderAdminList();}};}
+ return {error:'Comando não reconhecido. Exemplos: “4K altere o preço da Tilápia para R$ 35”; “4K remova Rosado congelado”; “4K cadastre Camarão novo por R$ 40 com 10 kg”.'};
+}
+function runAICommand(){
+ const raw=document.getElementById('aiText').value.trim();if(!raw)return;
+ const r=parseAICommand(raw);if(r.ignored)return logAI('Ignorado: o comando precisa começar com “4K”.');
+ if(r.error)return logAI('Erro: '+r.error);
+ logAI('Entendi: '+r.text);confirmChange(r.text,()=>{r.fn();logAI('Alteração confirmada e aplicada.');});
+}
+function toggleMic(){
+ if(micActive)stopMic();else startMic();
+}
+function startMic(){
+ const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+ if(!SR)return alert('Seu navegador não disponibiliza reconhecimento de voz nesta página.');
+ recognition=new SR();recognition.lang='pt-BR';recognition.continuous=true;recognition.interimResults=false;
+ recognition.onstart=()=>{micActive=true;document.getElementById('micBtn').textContent='🔴 Desativar microfone';document.getElementById('aiStatus').textContent='Microfone aberto. A assistente só responde quando ouvir “4K”.';document.getElementById('aiStatus').classList.add('mic-on');};
+ recognition.onresult=e=>{for(let i=e.resultIndex;i<e.results.length;i++){if(!e.results[i].isFinal)continue;const heard=e.results[i][0].transcript.trim();logAI('Ouvido: '+heard);if(norm(heard).startsWith('4k')){document.getElementById('aiText').value=heard;runAICommand();}}};
+ recognition.onerror=e=>logAI('Microfone: '+e.error);
+ recognition.onend=()=>{if(micActive){try{recognition.start()}catch(_){} }};
+ recognition.start();
+}
+function stopMic(){micActive=false;if(recognition){try{recognition.stop()}catch(_){}recognition=null;}const b=document.getElementById('micBtn');if(b)b.textContent='🎙 Ativar microfone';const s=document.getElementById('aiStatus');if(s){s.textContent='Microfone desligado.';s.classList.remove('mic-on');}}
 </script>
 </body>
 </html>
