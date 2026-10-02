@@ -1,0 +1,399 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#111111">
+<title>4K Meat | Catálogo e Pedido</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f4f4f4;color:#161616;font-family:Arial,Helvetica,sans-serif}
+header{background:#111;color:#fff;padding:22px 16px;text-align:center;position:sticky;top:0;z-index:20;box-shadow:0 2px 12px #0003}
+header strong{font-size:31px;letter-spacing:.5px}header strong span{color:#e21b23}
+.sub{color:#ddd;margin-top:6px;font-size:14px}
+main{max-width:1120px;margin:auto;padding:14px 14px 120px}
+.box{background:#fff;border-radius:16px;padding:16px;margin-bottom:14px;box-shadow:0 2px 12px #00000012}
+h2{margin:0 0 12px;font-size:19px}
+h3{margin:0;font-size:17px}
+small{color:#666;line-height:1.45}
+.types{display:flex;gap:8px;flex-wrap:wrap}
+.types button,.catbtn{padding:10px 13px;border-radius:10px;border:2px solid #ddd;background:#fff;font-weight:700;cursor:pointer}
+.types button.active,.catbtn.active{background:#e21b23;color:#fff;border-color:#e21b23}
+.seller{min-width:100px}
+.catalog-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.categories{display:flex;gap:8px;overflow-x:auto;padding:2px 1px 8px;scrollbar-width:thin}
+.catbtn{white-space:nowrap}
+.category-section{margin-top:18px}
+.category-title{display:flex;align-items:center;gap:8px;padding:11px 12px;background:#171717;color:#fff;border-radius:11px;margin-bottom:8px}
+.category-count{font-size:12px;color:#ddd;margin-left:auto}
+table{width:100%;border-collapse:collapse}
+th{background:#e21b23;color:#fff;text-align:left;padding:10px;font-size:12px}
+td{padding:9px 8px;border-bottom:1px solid #eee;vertical-align:middle}
+td.price,td.total{font-weight:700;color:#d71920;white-space:nowrap}
+.product-click{display:flex;align-items:center;gap:9px;cursor:pointer;font-weight:700}
+.product-name{line-height:1.25}
+input{width:18px;height:18px;accent-color:#e21b23;flex:0 0 auto}
+select{width:100%;min-width:205px;padding:9px;border:1px solid #ccc;border-radius:8px;background:#fff}
+select:disabled{background:#eee;color:#999}
+.summary{display:flex;justify-content:space-between;gap:15px;align-items:center;flex-wrap:wrap}
+.grand{font-size:25px;font-weight:800;color:#e21b23}
+button.send{background:#25d366;color:#fff;border:0;border-radius:10px;padding:14px 18px;font-size:16px;font-weight:800;cursor:pointer}
+.clear{border:0;padding:12px 15px;border-radius:10px;cursor:pointer}
+.sticky-order{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid #ddd;padding:10px 14px;z-index:30;box-shadow:0 -3px 15px #0002}
+.sticky-inner{max-width:1120px;margin:auto;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.sticky-total{font-weight:800}.sticky-total span{color:#e21b23;font-size:20px}
+.hidden{display:none!important}
+@media(max-width:760px){
+  header{position:relative}
+  th:nth-child(2),td:nth-child(2){display:none}
+  th{font-size:11px}
+  td{font-size:13px}
+  select{min-width:155px}
+  .summary{display:none}
+  .sticky-inner{flex-direction:row}
+  .sticky-order .send{padding:12px 14px;font-size:14px}
+}
+@media(max-width:480px){
+  main{padding:10px 9px 105px}
+  .box{padding:12px;border-radius:13px}
+  .product-name{font-size:13px}
+  td{padding:8px 4px}
+  select{min-width:145px;font-size:12px}
+  .sticky-total span{font-size:18px}
+}
+</style>
+</head>
+<body>
+<header>
+  <strong><span>4K</span> MEAT</strong>
+  <div class="sub">Catálogo • Atacado e Food Service • Pedido direto</div>
+</header>
+
+<main>
+  <div class="box">
+    <h2>Qual é o seu negócio?</h2>
+    <div class="types">
+      <button class="active" onclick="setType(this,'Restaurante')">Restaurantes</button>
+      <button onclick="setType(this,'Self-service')">Self-service</button>
+      <button onclick="setType(this,'Padaria')">Padaria</button>
+    </div>
+  </div>
+
+  <div class="box">
+    <h2>Quem vai receber seu pedido?</h2>
+    <div class="types">
+      <button class="seller active" data-phone="5527999931404" onclick="setSeller(this,'João')">João</button>
+      <button class="seller" data-phone="5527998504468" onclick="setSeller(this,'Alex')">Alex</button>
+    </div>
+    <small>Ao finalizar, o pedido será aberto diretamente na conversa do vendedor escolhido.</small>
+  </div>
+
+  <div class="box">
+    <div class="catalog-head">
+      <div>
+        <h2 style="margin-bottom:4px">Catálogo</h2>
+        <small>Escolha a categoria, marque os produtos e informe a quantidade de embalagens.</small>
+      </div>
+    </div>
+    <div class="categories" id="categories"></div>
+    <div id="catalog"></div>
+  </div>
+
+  <div class="box">
+    <div class="summary">
+      <div>Total do pedido: <span class="grand" id="grand">R$ 0,00</span></div>
+      <div><button class="clear" onclick="clearOrder()">Limpar pedido</button></div>
+    </div>
+  </div>
+</main>
+
+<div class="sticky-order">
+  <div class="sticky-inner">
+    <div class="sticky-total">Total: <span id="stickyGrand">R$ 0,00</span></div>
+    <button class="send" onclick="send()">Finalizar pedido</button>
+  </div>
+</div>
+
+<script>
+const products=[
+
+["Muçarela Du Luiz",45,"3,5 kg","kg"],
+["Presunto Cozido Dália",20.63,"3,3 kg","kg"],
+["Apresentado Cofril",16.13,"3,8 kg","kg"],
+["Calabresa Fina Adeel",17.88,"2,5 kg","kg"],
+["Salsicha Hot Dog Guibon",7.88,"3 kg","kg"],
+["Bacon Extra Paleta Adeel",23.13,"5 kg","kg"],
+["Filé de Peito de Frango",20.25,"~18 kg","kg"],
+["Coxa/Sobrecoxa Kifranggo",10.75,"20 kg","kg"],
+["Frango Inteiro Francap",11.88,"20 kg","kg"],
+["Frango a Passarinho IQF",12.38,"12 kg","kg"],
+["Acém Bovino Resfriado",38.13,"~7 kg","kg"],
+["Músculo Traseiro Cong.",36.25,"10 kg","kg"],
+["Costela em Tiras",25,"~22 kg","kg"],
+["Pernil S/Osso Cong.",16.5,"10 kg","kg"],
+["Carne Moída Suína",18.63,"~10 kg","kg"],
+["Linguiça Suína Saudali",14.88,"20 kg","kg"],
+["Batata Cool Mind 9 mm",12.25,"12 kg","kg"],
+["Alcatra S/Picanha Valencio",55,"6 kg","kg"],
+["Contra-filé Resfriado",58.63,"6 kg","kg"],
+["Fraldinha Congelada",50.63,"10 kg","kg"],
+["Costela Serrada em Tiras",28.63,"~25 kg","kg"],
+["Filé de Peito Guibon",20.25,"18 kg","kg"],
+["Filezinho Sassami",20,"20 kg","kg"],
+["Pernil S/Osso Cong.",16.5,"10 kg","kg"],
+["Lombo S/Osso Cong.",21.63,"7 kg","kg"],
+["Filé de Tilápia",33.13,"10 kg","kg"],
+["Camarão 7B",30,"kg","kg"],
+["Camarão 30/40 VG",75,"kg","kg"],
+["Camarão 80/100 VM",65,"kg","kg"],
+["Camarão 16/20",130,"kg","kg"],
+["Tilápia drenada",43,"caixa 20 kg","kg"],
+["Filé de Panga",33,"caixa 10 kg","kg"],
+["Salmão inteiro fresco",null,"caixa de aprox. 30 kg","kg"],
+["Filé de Salmão Drenado",85,"kg","kg"],
+["Filé de Salmão Congelado",75,"kg","kg"],
+["Rosado congelado",14,"kg","kg"],
+["Rosado drenado",20,"kg","kg"],
+["Costela suína fresca",27,"kg","kg"],
+["Lombo suíno fresco",26,"kg","kg"],
+["Pé suíno",13,"kg","kg"],
+["Kit Feijoada Defumado",550,"kit (aprox. 15 kg)","kit"],
+["Kit Feijoada 2",560,"kit (aprox. 15 kg)","kit"]
+
+];
+
+const categoryMap = {
+  'Muçarela Du Luiz': 'Frios e Laticínios',
+  'Presunto Cozido Dália': 'Frios e Laticínios',
+  'Apresentado Cofril': 'Frios e Laticínios',
+  'Calabresa Fina Adeel': 'Frios e Laticínios',
+  'Salsicha Hot Dog Guibon': 'Frios e Laticínios',
+  'Bacon Extra Paleta Adeel': 'Frios e Laticínios',
+  'Filé de Peito de Frango': 'Aves',
+  'Coxa/Sobrecoxa Kifranggo': 'Aves',
+  'Frango Inteiro Francap': 'Aves',
+  'Frango a Passarinho IQF': 'Aves',
+  'Filé de Peito Guibon': 'Aves',
+  'Filezinho Sassami': 'Aves',
+  'Acém Bovino Resfriado': 'Carnes Bovinas',
+  'Músculo Traseiro Cong.': 'Carnes Bovinas',
+  'Costela em Tiras': 'Carnes Bovinas',
+  'Alcatra S/Picanha Valencio': 'Carnes Bovinas',
+  'Contra-filé Resfriado': 'Carnes Bovinas',
+  'Fraldinha Congelada': 'Carnes Bovinas',
+  'Costela Serrada em Tiras': 'Carnes Bovinas',
+  'Pernil S/Osso Cong.': 'Carnes Suínas',
+  'Carne Moída Suína': 'Carnes Suínas',
+  'Linguiça Suína Saudali': 'Carnes Suínas',
+  'Lombo S/Osso Cong.': 'Carnes Suínas',
+  'Costela suína fresca': 'Carnes Suínas',
+  'Lombo suíno fresco': 'Carnes Suínas',
+  'Pé suíno': 'Carnes Suínas',
+  'Filé de Tilápia': 'Pescados e Frutos do Mar',
+  'Camarão 7B': 'Pescados e Frutos do Mar',
+  'Camarão 30/40 VG': 'Pescados e Frutos do Mar',
+  'Camarão 80/100 VM': 'Pescados e Frutos do Mar',
+  'Camarão 16/20': 'Pescados e Frutos do Mar',
+  'Tilápia drenada': 'Pescados e Frutos do Mar',
+  'Filé de Panga': 'Pescados e Frutos do Mar',
+  'Salmão inteiro fresco': 'Pescados e Frutos do Mar',
+  'Filé de Salmão Drenado': 'Pescados e Frutos do Mar',
+  'Filé de Salmão Congelado': 'Pescados e Frutos do Mar',
+  'Rosado congelado': 'Pescados e Frutos do Mar',
+  'Rosado drenado': 'Pescados e Frutos do Mar',
+  'Batata Cool Mind 9 mm': 'Batatas e Congelados',
+  'Kit Feijoada Defumado': 'Kits',
+  'Kit Feijoada 2': 'Kits'
+};
+const categoryOrder = ["Todos","Frios e Laticínios","Aves","Carnes Bovinas","Carnes Suínas","Pescados e Frutos do Mar","Batatas e Congelados","Kits"];
+
+let type="Restaurante";
+let seller="João";
+let phone="5527999931404";
+let currentCategory="Todos";
+
+const brl=n=>n.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+
+function packageKg(p){
+  const m=p[2].match(/([\d.,]+)\s*kg/);
+  if(!m) return 1;
+  return parseFloat(m[1].replace(/\./g,'').replace(',','.'));
+}
+function packageLabel(p){
+  if(p[2]==="kg") return "1 kg";
+  return p[2];
+}
+function unitPrice(p){
+  return p[3]==="kit" ? p[1] : p[1]*packageKg(p);
+}
+function productCategory(p){ return categoryMap[p[0]] || "Outros"; }
+
+function setType(btn,value){
+  document.querySelectorAll('.types button:not(.seller)').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active'); type=value;
+}
+function setSeller(btn,value){
+  document.querySelectorAll('.seller').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active'); seller=value; phone=btn.dataset.phone;
+}
+
+function renderCategories(){
+  const el=document.getElementById('categories');
+  el.innerHTML=categoryOrder.map(c=>`<button class="catbtn ${c===currentCategory?'active':''}" onclick="setCategory('${c.replace(/'/g,"\\'")}')">${c}</button>`).join('');
+}
+
+function setCategory(cat){
+  currentCategory=cat; renderCategories(); render();
+}
+
+function render(){
+  const catalog=document.getElementById('catalog');
+  const selected=products.filter(p=>currentCategory==="Todos" || productCategory(p)===currentCategory);
+  const groups={};
+  selected.forEach(p=>{
+    const cat=productCategory(p);
+    if(!groups[cat]) groups[cat]=[];
+    groups[cat].push(p);
+  });
+
+  catalog.innerHTML=Object.keys(groups).map(cat=>{
+    const rows=groups[cat].map(p=>{
+      const i=products.indexOf(p);
+      let options='<option value="0">Não pedir</option>';
+      for(let n=1;n<=10;n++){
+        const value=unitPrice(p)*n;
+        const weight=packageKg(p)*n;
+        let label;
+        if(p[3]==="kit"){
+          label=`${n} kit${n>1?'s':''} — ${brl(value)}`;
+        }else{
+          const weightText=Number.isInteger(weight)?weight.toLocaleString('pt-BR'):weight.toLocaleString('pt-BR',{maximumFractionDigits:1});
+          label=`${n} embalagem${n>1?'s':''} — ${weightText} kg aprox. — ${brl(value)}`;
+        }
+        options+=`<option value="${n}">${label}</option>`;
+      }
+      const priceText=p[1]==null?'Sob consulta':(p[3]==="kit"?brl(p[1]):brl(p[1])+'/kg');
+      return `<tr>
+        <td><label class="product-click"><input type="checkbox" class="pick" data-i="${i}" onchange="toggleSelect(${i})"><span class="product-name">${p[0]}</span></label></td>
+        <td>${packageLabel(p)}</td>
+        <td class="price">${priceText}</td>
+        <td><select id="q${i}" disabled onchange="calc()">${options}</select></td>
+        <td class="total" id="t${i}">${p[1]==null?'Sob consulta':'R$ 0,00'}</td>
+      </tr>`;
+    }).join('');
+
+    return `<section class="category-section">
+      <div class="category-title"><h3>${cat}</h3><span class="category-count">${groups[cat].length} itens</span></div>
+      <div style="overflow-x:auto"><table><thead><tr><th>PRODUTO</th><th>EMBALAGEM</th><th>PREÇO/KG</th><th>QUANTIDADE</th><th>TOTAL</th></tr></thead><tbody>${rows}</tbody></table></div>
+    </section>`;
+  }).join('');
+
+  calc();
+}
+
+function toggleSelect(i){
+  const cb=document.querySelector(`.pick[data-i="${i}"]`);
+  const sel=document.getElementById('q'+i);
+  if(!cb || !sel) return;
+  sel.disabled=!cb.checked;
+  if(!cb.checked) sel.value='0';
+  else if(sel.value==='0') sel.value='1';
+  calc();
+}
+
+function calc(){
+  let grand=0;
+  products.forEach((p,i)=>{
+    const sel=document.getElementById('q'+i);
+    const totalEl=document.getElementById('t'+i);
+    if(!sel || !totalEl) return;
+    const n=parseInt(sel.value)||0;
+    let total=0;
+    if(n>0 && p[1]!=null){
+      total=unitPrice(p)*n;
+      totalEl.textContent=brl(total);
+    }else{
+      totalEl.textContent=p[1]==null && n>0?'Sob consulta':'R$ 0,00';
+    }
+    grand+=total;
+  });
+  document.getElementById('grand').textContent=brl(grand);
+  document.getElementById('stickyGrand').textContent=brl(grand);
+}
+
+function clearOrder(){
+  products.forEach((_,i)=>{
+    const cb=document.querySelector(`.pick[data-i="${i}"]`);
+    const sel=document.getElementById('q'+i);
+    if(cb) cb.checked=false;
+    if(sel){sel.value='0';sel.disabled=true;}
+  });
+  calc();
+}
+
+function send(){
+  let lines=[
+    'Olá, 4K Meat! Quero fazer um pedido.',
+    '',
+    'Tipo de negócio: '+type,
+    'Vendedor: '+seller,
+    ''
+  ];
+  let total=0, has=false, consult=[];
+
+  products.forEach((p,i)=>{
+    const sel=document.getElementById('q'+i);
+    const cb=document.querySelector(`.pick[data-i="${i}"]`);
+    if(!sel || !cb || !cb.checked) return;
+    const n=parseInt(sel.value)||0;
+    if(n<=0) return;
+    has=true;
+
+    if(p[1]==null){
+      consult.push(`• ${p[0]} — ${n} embalagem(ns) — ${p[2]} — PREÇO SOB CONSULTA`);
+      return;
+    }
+
+    const value=unitPrice(p)*n;
+    total+=value;
+
+    if(p[3]==="kit"){
+      lines.push(`• ${p[0]} — ${n} kit(s) — ${p[2]} — ${brl(value)}`);
+    }else{
+      const kg=packageKg(p)*n;
+      const kgText=Number.isInteger(kg)?kg.toLocaleString('pt-BR'):kg.toLocaleString('pt-BR',{maximumFractionDigits:1});
+      lines.push(`• ${p[0]} — ${n} embalagem(ns) — ${p[2]} — ${kgText} kg aprox. — ${brl(value)}`);
+    }
+  });
+
+  if(!has){
+    alert('Selecione pelo menos um produto e uma quantidade.');
+    return;
+  }
+
+  if(consult.length){
+    lines.push('', 'ITENS SOB CONSULTA:');
+    lines.push(...consult);
+    lines.push('', 'O vendedor da 4K Meat informará o preço e confirmará a disponibilidade desses itens.');
+  }
+
+  lines.push(
+    '',
+    `TOTAL ESTIMADO DOS ITENS COM PREÇO: ${brl(total)}`,
+    '',
+    'Aguardo confirmação da disponibilidade e do peso final.'
+  );
+
+  if(!phone){
+    alert('Selecione um vendedor para enviar o pedido.');
+    return;
+  }
+
+  window.open('https://wa.me/'+phone+'?text='+encodeURIComponent(lines.join('\n')),'_blank');
+}
+
+renderCategories();
+render();
+</script>
+</body>
+</html>
