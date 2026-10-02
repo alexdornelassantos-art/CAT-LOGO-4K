@@ -210,6 +210,7 @@ button.send{background:#25d366;color:#fff;border:0;border-radius:10px;padding:14
 </div>
 
 <script>
+const FOUR_K_AI_ENDPOINT = localStorage.getItem("4k_ai_endpoint") || "/api/4k-ai";
 const products=[
 
 ["Muçarela Du Luiz",45,"3,5 kg","kg"],
@@ -523,7 +524,30 @@ function prepareAdd(){
  if(!name||Number.isNaN(price)||!pack)return alert('Preencha nome, preço e embalagem.');
  confirmChange(`Cadastrar “${name}” por ${brl(price)} com embalagem “${pack}” em “${cat}”?`,()=>{adminProducts.push([name,price,pack,cat==='Kits'?'kit':'kg']);categoryMap[name]=cat;saveCatalog();syncProducts();renderAdminList();document.getElementById('newName').value='';document.getElementById('newPrice').value='';document.getElementById('newPackage').value='';});
 }
-function inspectPhoto(e){const f=e.target.files?.[0];if(!f)return;document.getElementById('photoStatus').textContent=`Foto carregada: ${f.name}. Para identificação automática por visão, conecte um endpoint de IA seguro.`;document.getElementById('photoStatus').classList.add('ai-status');}
+async function inspectPhoto(e){
+ const f=e.target.files?.[0];if(!f)return;
+ document.getElementById('photoStatus').textContent='Enviando a foto para a IA 4K identificar o produto...';
+ try{
+   const reader=new FileReader();
+   reader.onload=async()=>{
+     try{
+       const res=await fetch(FOUR_K_AI_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+         mode:'image',image:reader.result,catalog:adminProducts.map(p=>({name:p[0],price:p[1],package:p[2],unit:p[3],category:productCategory(p)}))
+       })});
+       if(!res.ok)throw new Error('Endpoint de IA indisponível ('+res.status+').');
+       const d=await res.json();
+       if(d.action==='identify'){
+         document.getElementById('photoProductName').value=d.change?.name||'';
+         document.getElementById('photoPrice').value=d.change?.price??'';
+         document.getElementById('photoPackage').value=d.change?.package||'';
+         if(d.change?.category)document.getElementById('photoCategory').value=d.change.category;
+         document.getElementById('photoStatus').textContent='IA identificou a foto e preencheu os campos. Confira e clique em “Preparar cadastro”.';
+       }else document.getElementById('photoStatus').textContent=d.message||'Não consegui identificar o produto com segurança.';
+     }catch(err){document.getElementById('photoStatus').textContent='Erro de IA: '+err.message;}
+   };
+   reader.readAsDataURL(f);
+ }catch(err){document.getElementById('photoStatus').textContent='Erro ao ler a foto.';}
+}
 function preparePhotoProduct(){
  const name=document.getElementById('photoProductName').value.trim(), price=numBR(document.getElementById('photoPrice').value), pack=document.getElementById('photoPackage').value.trim(), cat=document.getElementById('photoCategory').value;
  if(!name||Number.isNaN(price)||!pack)return alert('Preencha os dados identificados antes de preparar o cadastro.');
@@ -540,11 +564,38 @@ function parseAICommand(text){
  if(m){const name=m[1].trim(),n=numBR(m[2]),pack=(m[3]||'1 kg').trim();return {text:`Cadastrar “${name}” por ${brl(n)} com embalagem “${pack}”?`,fn:()=>{adminProducts.push([name,n,pack,'kg']);categoryMap[name]='Outros';saveCatalog();syncProducts();renderAdminList();}};}
  return {error:'Comando não reconhecido. Exemplos: “4K altere o preço da Tilápia para R$ 35”; “4K remova Rosado congelado”; “4K cadastre Camarão novo por R$ 40 com 10 kg”.'};
 }
-function runAICommand(){
+async function runAICommand(){
  const raw=document.getElementById('aiText').value.trim();if(!raw)return;
- const r=parseAICommand(raw);if(r.ignored)return logAI('Ignorado: o comando precisa começar com “4K”.');
- if(r.error)return logAI('Erro: '+r.error);
- logAI('Entendi: '+r.text);confirmChange(r.text,()=>{r.fn();logAI('Alteração confirmada e aplicada.');});
+ if(!norm(raw).startsWith('4k'))return logAI('Ignorado: o comando precisa começar com “4K”.');
+ logAI('IA 4K interpretando...');
+ try{
+   const res=await fetch(FOUR_K_AI_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+     mode:'command',command:raw,catalog:adminProducts.map(p=>({name:p[0],price:p[1],package:p[2],unit:p[3],category:productCategory(p)}))
+   })});
+   if(!res.ok)throw new Error('Endpoint de IA indisponível ('+res.status+').');
+   const data=await res.json();
+   if(!data.action||data.action==='none')return logAI(data.message||'Não identifiquei uma alteração.');
+   const ch=data.change||{};
+   if(data.action==='edit_price'){
+     const p=findProduct(ch.product); const n=Number(ch.price);
+     if(!p||!Number.isFinite(n))return logAI('A IA retornou um produto/preço inválido.');
+     confirmChange('A IA entendeu: alterar o preço de “'+p[0]+'” para '+brl(n)+'?',()=>{p[1]=n;saveCatalog();syncProducts();renderAdminList();logAI('Alteração confirmada e aplicada.');});
+   }else if(data.action==='edit_name'){
+     const p=findProduct(ch.product); if(!p)return logAI('A IA não encontrou esse produto.');
+     confirmChange('A IA entendeu: alterar o nome de “'+p[0]+'” para “'+ch.name+'”?',()=>{p[0]=String(ch.name).trim();saveCatalog();syncProducts();renderAdminList();logAI('Alteração confirmada e aplicada.');});
+   }else if(data.action==='remove'){
+     const p=findProduct(ch.product); if(!p)return logAI('A IA não encontrou esse produto.');
+     confirmChange('A IA entendeu: remover “'+p[0]+'” do catálogo?',()=>{adminProducts.splice(adminProducts.indexOf(p),1);saveCatalog();syncProducts();renderAdminList();logAI('Produto removido após confirmação.');});
+   }else if(data.action==='add'){
+     const name=String(ch.name||'').trim(), n=Number(ch.price), pack=String(ch.package||'1 kg').trim(), cat=String(ch.category||'Outros');
+     if(!name||!Number.isFinite(n))return logAI('A IA não retornou dados suficientes para cadastrar.');
+     confirmChange('A IA entendeu: cadastrar “'+name+'” por '+brl(n)+' com embalagem “'+pack+'”?',()=>{adminProducts.push([name,n,pack,cat==='Kits'?'kit':'kg']);categoryMap[name]=cat;saveCatalog();syncProducts();renderAdminList();logAI('Produto cadastrado após confirmação.');});
+   }else if(data.action==='correct_text'){
+     logAI('Correção: '+(data.corrected_text||'Nenhuma alteração necessária.'));
+   }else{
+     logAI(data.message||'A IA retornou uma ação não suportada.');
+   }
+ }catch(err){logAI('Erro de IA: '+err.message);}
 }
 function toggleMic(){
  if(micActive)stopMic();else startMic();
