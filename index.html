@@ -8,11 +8,32 @@
 <style>
 *{box-sizing:border-box}
 body{margin:0;background:#f4f4f4;color:#161616;font-family:Arial,Helvetica,sans-serif}
-header{background:#111;color:#fff;padding:22px 16px;text-align:center;position:sticky;top:0;z-index:20;box-shadow:0 2px 12px #0003}
-header strong{font-size:31px;letter-spacing:.5px}header strong span{color:#e21b23}
-.sub{color:#ddd;margin-top:6px;font-size:14px}
+header{background:#fff;color:#111;padding:18px 18px 16px;position:sticky;top:0;z-index:20;box-shadow:0 4px 18px #00000018;overflow:hidden}
+.brand-header{display:flex;align-items:center;justify-content:center;gap:26px;min-height:148px;position:relative}
+.brand-stripe{position:absolute;left:0;top:-18px;bottom:-16px;width:22px;background:#e21b23;transform:skewX(-7deg)}
+.brand-copy{max-width:330px;margin-left:12px}
+.brand-name{font-size:28px;font-weight:900;letter-spacing:.5px}
+.brand-product{font-size:29px;font-weight:300;letter-spacing:1px;line-height:1.05;margin-top:2px}
+.brand-product b{font-weight:900;color:#e21b23}
+.brand-sub{font-size:13px;line-height:1.35;color:#555;margin-top:8px}
+.brand-mark{width:128px;height:128px;border:6px solid #161616;border-radius:50%;position:relative;background:#fff;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+.mark-4k{font-size:43px;font-weight:900;color:#df101b;letter-spacing:-5px;margin-left:-4px}
+.mark-ring{position:absolute;inset:4px;border-radius:50%;font-size:7px;line-height:1.1;letter-spacing:1px;color:#a34b50;text-align:center;padding:7px 14px;display:flex;align-items:flex-start;justify-content:center;transform:rotate(-24deg);pointer-events:none}
+.sub{color:#555;margin-top:6px;font-size:14px}
+@media(max-width:600px){
+  .brand-header{justify-content:space-between;gap:12px;min-height:128px}
+  .brand-copy{max-width:215px;margin-left:7px}
+  .brand-name{font-size:23px}
+  .brand-product{font-size:23px}
+  .brand-sub{font-size:11px}
+  .brand-mark{width:104px;height:104px;border-width:5px}
+  .mark-4k{font-size:35px}
+  .mark-ring{font-size:5.7px;padding:7px 11px}
+}
 main{max-width:1120px;margin:auto;padding:14px 14px 120px}
-.box{background:#fff;border-radius:16px;padding:16px;margin-bottom:14px;box-shadow:0 2px 12px #00000012}
+.box{background:#fff;border-radius:16px;padding:16px;margin-bottom:14px;box-shadow:0 2px 12px #00000012;border:1px solid #eee}
+main{background:linear-gradient(180deg,#fff 0,#f6f6f6 220px)}
+h2{letter-spacing:-.2px}
 h2{margin:0 0 12px;font-size:19px}
 h3{margin:0;font-size:17px}
 small{color:#666;line-height:1.45}
@@ -64,9 +85,17 @@ button.send{background:#25d366;color:#fff;border:0;border-radius:10px;padding:14
 </style>
 </head>
 <body>
-<header>
-  <strong><span>4K</span> MEAT</strong>
-  <div class="sub">Catálogo • Atacado e Food Service • Pedido direto</div>
+<header class="brand-header">
+  <div class="brand-stripe"></div>
+  <div class="brand-copy">
+    <div class="brand-name">4K MEAT</div>
+    <div class="brand-product">PRODUTOS <b>//</b></div>
+    <div class="brand-sub">Pescados e defumados com preços de atacado.<br>Atendimento personalizado para o seu negócio.</div>
+  </div>
+  <div class="brand-mark" aria-label="4K Distribuidora de Carnes">
+    <div class="mark-4k">4K</div>
+    <div class="mark-ring">ALIMENTOS CÁRNEOS • 4K VARIEDADE E QUALIDADE • DISTRIBUIDORA</div>
+  </div>
 </header>
 
 <main>
